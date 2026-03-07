@@ -70,7 +70,9 @@ def login():
 
     token = res["access_token"]
 
+    print(token)
     decoded = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+    print(decoded)
 
     user_type = decoded["type"]
 
@@ -84,9 +86,17 @@ def login():
 # -----------------------------
 def get_users():
 
-    r = requests.get(f"{BASE_URL}/users")
+    headers = {
+        "Authorization": f"Bearer {token}"
+    }
+
+    r = requests.get(f"{BASE_URL}/users", headers=headers)
 
     users = r.json()
+
+    if isinstance(users, dict) and "detail" in users:
+        print(users["detail"])
+        return []
 
     print("\n------ USERS ------")
 

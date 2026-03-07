@@ -113,10 +113,18 @@ def get_users(request: Request):
 # GET ALL ACTIONS
 # --------------------------
 @router.get("/actions")
-def get_actions():
+def get_actions(request: Request):
+
+    user = request.state.user
+
+    if not user:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    if user["type"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
 
     db = get_db()
-    cursor = db.cursor()
+    cursor = db.cursor(dictionary=True)
 
     cursor.execute("SELECT * FROM actions")
 
