@@ -1,0 +1,1 @@
+pip install fastapi uvicorn pymysql python-jose passlib[bcrypt] requests
