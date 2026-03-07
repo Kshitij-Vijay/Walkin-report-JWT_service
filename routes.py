@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException,Request
 from database import get_db
 from models import *
 from auth import hash_password, verify_password, create_token
@@ -87,22 +87,26 @@ def login(user: LoginModel):
     }
 
 
-
-
 # --------------------------
 # GET ALL USERS
 # --------------------------
 @router.get("/users")
-def get_users():
+def get_users(request: Request):
+
+    user = request.state.user
+
+    if not user:
+        return {"error": "Unauthorized"}
+
+    if user["type"] != "admin":
+        return {"error": "Admin only"}
 
     db = get_db()
     cursor = db.cursor()
 
     cursor.execute("SELECT id,name,type,roles FROM users")
 
-    users = cursor.fetchall()
-
-    return users
+    return cursor.fetchall()
 
 
 # --------------------------
