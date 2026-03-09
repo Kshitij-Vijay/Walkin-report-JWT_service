@@ -1,5 +1,8 @@
-import datetime
-from fastapi import APIRouter, HTTPException,Request
+from datetime import datetime
+from fastapi import APIRouter, HTTPException, Header,Request
+from jose import JWTError
+import jwt
+from config import ALGORITHM, SECRET_KEY
 from database import get_db
 from models import *
 from auth import hash_password, verify_password, create_token
@@ -172,3 +175,40 @@ def create_log(log: LogModel):
     db.commit()
 
     return {"message": "Log inserted successfully"}
+
+
+
+@router.get("/token_validity")
+def token_validity(authorization: str = Header(None)):
+
+    if not authorization:
+        return {"valid": False, "message": "Authorization header missing"}
+
+    # Extract token
+    if authorization.startswith("Bearer "):
+        token = authorization[7:]
+    else:
+        token = authorization
+
+    # Check token format before decoding
+    if token.count(".") != 2:
+        return {"valid": False, "message": "Invalid token format"}
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+
+        exp = payload.get("exp")
+        exp_time = datetime.fromtimestamp(exp)
+        remaining = exp_time - datetime.utcnow()
+
+        return {
+            "valid": True,
+            "expires_at": exp_time,
+            "seconds_remaining": int(remaining.total_seconds())
+        }
+
+    except jwt.ExpiredSignatureError:
+        return {"valid": False, "message": "Token expired"}
+
+    except jwt.InvalidTokenError:
+        return {"valid": False, "message": "Invalid token"}
