@@ -2,6 +2,13 @@ from pydantic import BaseModel
 from typing import List
 
 
+class LogModel(BaseModel):
+    username: str
+    query: str
+    description: str | None = None
+    status: str
+
+
 class RegisterModel(BaseModel):
     name: str
     password: str

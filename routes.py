@@ -1,3 +1,4 @@
+import datetime
 from fastapi import APIRouter, HTTPException,Request
 from database import get_db
 from models import *
@@ -124,7 +125,7 @@ def get_actions(request: Request):
         raise HTTPException(status_code=403, detail="Admin access required")
 
     db = get_db()
-    cursor = db.cursor(dictionary=True)
+    cursor = db.cursor()
 
     cursor.execute("SELECT * FROM actions")
 
@@ -142,15 +143,32 @@ def update_user(user: User):
     db = get_db()
     cursor = db.cursor()
 
+    query = "UPDATE users SET name='" + user.name +  "', type='" + user.type + "', roles='" + user.roles +"' WHERE id=" + str(user.id)
+
+    cursor.execute(query)
+
+    db.commit()
+
+    return {"message": "User updated",
+            "query" : query}
+
+
+@router.post("/logs")
+def create_log(log: LogModel):
+
+    db = get_db()
+    cursor = db.cursor()
+
+    current_time = datetime.now()
+
     cursor.execute(
         """
-        UPDATE users
-        SET name=%s, type=%s, roles=%s
-        WHERE id=%s
+        INSERT INTO logs (username, query, description, status, clock)
+        VALUES (%s, %s, %s, %s, %s)
         """,
-        (user.name, user.type, user.roles, user.id)
+        (log.username, log.query, log.description, log.status, current_time)
     )
 
     db.commit()
 
-    return {"message": "User updated"}
+    return {"message": "Log inserted successfully"}
