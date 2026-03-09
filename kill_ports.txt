@@ -1,4 +1,4 @@
-netstat -ano | findstr :8000
-for /f "tokens=5" %a in ('netstat -ano ^| findstr :8000') do taskkill /PID %a /F
-netstat -ano | findstr :8000
+netstat -ano | findstr :3306
+for /f "tokens=5" %a in ('netstat -ano ^| findstr :3306') do taskkill /PID %a /F
+netstat -ano | findstr :3306
 taskkill /PID 1234 /F

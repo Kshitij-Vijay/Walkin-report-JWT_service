@@ -1,5 +1,6 @@
 from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi import Request
+from fastapi.responses import JSONResponse
 from jose import jwt
 from config import SECRET_KEY, ALGORITHM
 
@@ -8,17 +9,19 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next):
 
-        # Skip authentication for public routes
         public_routes = ["/login", "/register", "/health"]
 
+        # Allow public routes without authentication
         if request.url.path in public_routes:
             return await call_next(request)
 
         auth_header = request.headers.get("Authorization")
 
         if not auth_header:
-            request.state.user = None
-            return await call_next(request)
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "Authentication required"}
+            )
 
         try:
             token = auth_header.split(" ")[1]
@@ -28,7 +31,10 @@ class AuthMiddleware(BaseHTTPMiddleware):
             request.state.user = payload
 
         except Exception:
-            request.state.user = None
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "Invalid or expired token"}
+            )
 
         response = await call_next(request)
 

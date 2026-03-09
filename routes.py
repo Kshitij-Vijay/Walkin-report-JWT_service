@@ -222,3 +222,85 @@ def token_validity(authorization: str = Header(None)):
 
     except jwt.InvalidTokenError:
         return {"valid": False, "message": "Invalid token"}
+    
+
+@router.get("/GetWalkins", response_model=List[Walkins])
+def GetWalkins():
+
+    db = get_db()
+    cursor = db.cursor()
+
+    cursor.execute("SELECT * FROM walkins")
+
+    rows = cursor.fetchall()
+
+    walkins_list = []
+
+    for row in rows:
+        walkins_list.append(Walkins(**row))
+
+    return walkins_list
+
+
+@router.get("/GetStores", response_model=List[Store])
+def GetStores():
+
+    db = get_db()
+    cursor = db.cursor()
+
+    cursor.execute("SELECT * FROM store")
+
+    rows = cursor.fetchall()
+
+    stores = [Store(**row) for row in rows]
+
+    return stores
+
+@router.get("/GetCategor", response_model=list[Categor])
+def GetCategor():
+
+    db = get_db()
+    cursor = db.cursor()
+
+    cursor.execute("SELECT * FROM categor")
+
+    return cursor.fetchall()
+
+@router.get("/GetStaff", response_model=list[Staff])
+def GetStaff():
+
+    db = get_db()
+    cursor = db.cursor()
+
+    cursor.execute("SELECT * FROM staff")
+
+    return cursor.fetchall()
+
+@router.get("/GetStatus", response_model=list[Status])
+def GetStatus(): 
+
+    db = get_db()
+    cursor = db.cursor()
+
+    cursor.execute("SELECT * FROM status")
+
+    return cursor.fetchall()
+
+
+@router.get("/getroles")
+def getroles(username: str):
+
+    db = get_db()
+    cursor = db.cursor()
+
+    cursor.execute(
+        "SELECT roles FROM users WHERE name=%s",
+        (username,)
+    )
+
+    result = cursor.fetchone()
+
+    if not result:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return result["roles"]
