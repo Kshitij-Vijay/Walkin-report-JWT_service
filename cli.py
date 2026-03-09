@@ -28,18 +28,23 @@ def register():
     print("\n------ REGISTER ------")
 
     name = input("Username: ")
+    email = input("Email: ")
     password = input("Password: ")
     type = input("Type (admin/user): ")
 
     data = {
         "name": name,
+        "email": email,
         "password": password,
         "type": type
     }
 
     r = requests.post(f"{BASE_URL}/register", json=data)
 
-    print(r.json())
+    try:
+        print(r.json())
+    except:
+        print("Error:", r.text)
 
 
 # -----------------------------

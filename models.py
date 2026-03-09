@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import List
 
 
@@ -13,6 +13,7 @@ class RegisterModel(BaseModel):
     name: str
     password: str
     type: str
+    email : str
 
 
 class LoginModel(BaseModel):

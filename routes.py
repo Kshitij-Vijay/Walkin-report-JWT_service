@@ -32,24 +32,34 @@ def register(user: RegisterModel):
     db = get_db()
     cursor = db.cursor()
 
+    # Check username
     cursor.execute(
         "SELECT * FROM users WHERE name=%s",
         (user.name,)
     )
+    existing_user = cursor.fetchone()
 
-    existing = cursor.fetchone()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Username already exists")
 
-    if existing:
-        raise HTTPException(status_code=400, detail="User already exists")
+    # Check email
+    cursor.execute(
+        "SELECT * FROM users WHERE email=%s",
+        (user.email,)
+    )
+    existing_email = cursor.fetchone()
+
+    if existing_email:
+        raise HTTPException(status_code=400, detail="Email already registered")
 
     hashed = hash_password(user.password)
 
     cursor.execute(
         """
-        INSERT INTO users (name,password,type,roles)
-        VALUES (%s,%s,%s,%s)
+        INSERT INTO users (name, email, password, type, roles)
+        VALUES (%s, %s, %s, %s, %s)
         """,
-        (user.name, hashed, user.type, "0")
+        (user.name, user.email, hashed, user.type, "0")
     )
 
     db.commit()
