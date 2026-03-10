@@ -187,7 +187,6 @@ def create_log(log: LogModel):
     return {"message": "Log inserted successfully"}
 
 
-
 @router.get("/token_validity")
 def token_validity(authorization: str = Header(None)):
 
@@ -304,3 +303,165 @@ def getroles(username: str):
         raise HTTPException(status_code=404, detail="User not found")
 
     return result["roles"]
+
+
+@router.get("/GetWalkinColumns", response_model=List[str])
+def GetWalkinColumns():
+
+    db = get_db()
+    cursor = db.cursor()
+
+    query = """
+        SELECT COLUMN_NAME
+        FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'walkins'
+    """
+
+    cursor.execute(query)
+
+    rows = cursor.fetchall()
+
+    columns = [row[0] for row in rows]
+
+    return columns
+
+
+@router.put("/UpdateWalkin")
+def update_walkin(w: Walkins):
+
+    db = get_db()
+    cursor = db.cursor()
+
+    query = """
+    UPDATE walkins SET
+        name = %s,
+        area = %s,
+        pin = %s,
+        phone = %s,
+        source = %s,
+        team = %s,
+        status = %s,
+        categor = %s,
+        products = %s,
+        store = %s,
+        remarks = %s,
+        created_at = %s,
+        amount = %s,
+        followup = %s
+    WHERE id = %s
+    """
+
+    try:
+        cursor.execute(
+            query,
+            (
+                w.name,
+                w.area,
+                w.pin,
+                w.phone,
+                w.source,
+                w.team,
+                w.status,
+                w.categor,
+                w.products,
+                w.store,
+                w.remarks,
+                w.created_at,
+                w.amount,
+                w.followup,
+                w.id
+            )
+        )
+        db.commit()
+
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Walkin not found")
+
+        return {"message": "Walkin updated successfully"}
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/InsertWalkin")
+def insert_walkin(w: Walkins):
+
+    db = get_db()
+    cursor = db.cursor()
+
+    query = """
+    INSERT INTO walkins
+    (name, area, pin, phone, source, team, status, categor, products, store, remarks, created_at, amount, followup)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    """
+
+    # If created_at is not provided, use current timestamp
+    created_at = w.created_at or datetime.now()
+
+    try:
+        cursor.execute(
+            query,
+            (
+                w.name,
+                w.area,
+                w.pin,
+                w.phone,
+                w.source,
+                w.team,
+                w.status,
+                w.categor,
+                w.products,
+                w.store,
+                w.remarks,
+                created_at,
+                w.amount,
+                w.followup
+            )
+        )
+        db.commit()
+        return {"message": "Walkin inserted successfully", "id": cursor.lastrowid}
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/DeleteWalkin/{id}")
+def delete_walkin(id: int):
+    db = get_db()
+    cursor = db.cursor()
+
+    query = "DELETE FROM walkins WHERE id = %s"
+
+    try:
+        cursor.execute(query, (id,))
+        db.commit()
+
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="No record found with the given ID")
+
+        return {"message": "Walkin deleted successfully"}
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Delete failed: {str(e)}")
+
+
+@router.post("/backup_walkins")
+def backup_walkins():
+    db = get_db()
+    cursor = db.cursor()
+    
+    try:
+        # Drop backup table if exists
+        cursor.execute("DROP TABLE IF EXISTS walkins_backup;")
+        # Create backup table and copy all records
+        cursor.execute("CREATE TABLE walkins_backup LIKE walkins;")
+        cursor.execute("INSERT INTO walkins_backup SELECT * FROM walkins;")
+        db.commit()
+        return {"message": "Backup successful"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Backup failed: {str(e)}")

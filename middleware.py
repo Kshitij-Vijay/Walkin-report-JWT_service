@@ -9,7 +9,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next):
 
-        public_routes = ["/login", "/register", "/health"]
+        public_routes = ["/login", "/register", "/health", "/docs", "/openapi.json"]
 
         # Allow public routes without authentication
         if request.url.path in public_routes:
