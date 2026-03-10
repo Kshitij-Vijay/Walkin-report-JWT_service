@@ -304,7 +304,6 @@ def getroles(username: str):
 
     return result["roles"]
 
-
 @router.get("/GetWalkinColumns", response_model=List[str])
 def GetWalkinColumns():
 
@@ -315,14 +314,15 @@ def GetWalkinColumns():
         SELECT COLUMN_NAME
         FROM INFORMATION_SCHEMA.COLUMNS
         WHERE TABLE_SCHEMA = DATABASE()
-          AND TABLE_NAME = 'walkins'
+        AND TABLE_NAME = 'walkins'
+        ORDER BY ORDINAL_POSITION
     """
 
     cursor.execute(query)
 
     rows = cursor.fetchall()
 
-    columns = [row[0] for row in rows]
+    columns = [row["COLUMN_NAME"] for row in rows]
 
     return columns
 

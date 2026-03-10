@@ -4,5 +4,5 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 DB_HOST = "localhost"
 DB_USER = "root"
-DB_PASSWORD = "*1+1J_Zero00"
+DB_PASSWORD = "minu_me0w"
 DB_NAME = "walkin"
